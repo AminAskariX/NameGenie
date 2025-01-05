@@ -1,6 +1,6 @@
 # NameGenie - Batch File Renamer
 
-## Description (English) ✨
+## Description ✨
 **NameGenie** is a Windows-based graphical application built using C++ and the Qt framework. This tool allows users to batch rename files in a selected folder. With its user-friendly interface, users can add prefixes, suffixes, and organize files with ascending or descending numbering. 
 
 ---
@@ -101,7 +101,7 @@ We welcome developers to contribute to this project. Feel free to fork the repos
 
 # NameGenie - تغییر نام دسته‌ای فایل‌ها
 
-## توضیحات (فارسی) ✨
+## توضیحات ✨
 **NameGenie** یک ابزار گرافیکی ساده و کاربردی برای ویندوز است که با استفاده از زبان برنامه‌نویسی C++ و فریم‌ورک Qt توسعه یافته است. این ابزار به شما امکان می‌دهد تا فایل‌های موجود در یک پوشه را به صورت دسته‌ای تغییر نام دهید. کاربران می‌توانند پیشوند، پسوند اضافه کنند و فایل‌ها را با شماره‌گذاری صعودی یا نزولی مرتب کنند.
 
 ---
