@@ -1,28 +1,20 @@
 #ifndef FILERENAMER_H
 #define FILERENAMER_H
-
 #include <QString>
-#include <QDir>
-#include <vector>
-
+#include <QStringList>
+#include <QVector>
 class FileRenamer {
 public:
     explicit FileRenamer(const QString &folderPath);
-
-    void setPrefix(const QString &prefix);
-    void setSuffix(const QString &suffix);
+    void setPrefix(const QString &value);
+    void setSuffix(const QString &value);
     void setNumbering(bool ascending);
-
-    std::vector<QString> previewChanges();
-    void applyChanges();
-
+    QStringList previewChanges(QString *error = nullptr) const;
+    bool applyChanges(QString *error = nullptr) const;
 private:
-    QString folderPath;
-    QString prefix;
-    QString suffix;
-    bool ascending;
-
-    std::vector<QString> getFilesInFolder();
+    struct Change { QString original; QString target; QString temporary; };
+    QVector<Change> plan(QString *error) const;
+    QString folderPath, prefix, suffix;
+    bool ascending = true;
 };
-
-#endif // FILERENAMER_H
+#endif
