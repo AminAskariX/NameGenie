@@ -64,6 +64,9 @@
      </widget>
     </item>
     <item>
+     <widget class="QPushButton" name="previewButton"><property name="text"><string>پیش‌نمایش تغییرات</string></property></widget>
+    </item>
+    <item>
      <widget class="QPushButton" name="startRenamingButton">
       <property name="text">
        <string>تغییر نام فایل‌ها</string>
