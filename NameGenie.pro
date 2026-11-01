@@ -1,26 +1,8 @@
-# NameGenie.pro - Project File
-
-QT       += core gui
-
+QT += core gui widgets
+CONFIG += c++11
 TARGET = NameGenie
 TEMPLATE = app
-
-# Source Files
-SOURCES += \ 
-    src/main.cpp \ 
-    src/FileRenamer.cpp
-
-# Header Files
-HEADERS += \ 
-    src/FileRenamer.h
-
-# UI Files
-FORMS += \ 
-    src/NameGenie.ui
-
-# Resource Files
-RESOURCES += \ 
-    resources/icons.qrc
-
-# Additional Configurations
-CONFIG += c++11
+SOURCES += src/main.cpp \
+           src/FileRenamer.cpp
+HEADERS += src/FileRenamer.h
+FORMS += src/NameGenie.ui
