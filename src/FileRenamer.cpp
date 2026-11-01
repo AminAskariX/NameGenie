@@ -1,56 +1,84 @@
 #include "FileRenamer.h"
 #include <QDir>
+#include <QFile>
 #include <QFileInfo>
+#include <QSet>
+#include <QUuid>
 #include <algorithm>
 
-FileRenamer::FileRenamer(const QString &folderPath)
-    : folderPath(folderPath), ascending(true) {}
+FileRenamer::FileRenamer(const QString &path) : folderPath(path) {}
+void FileRenamer::setPrefix(const QString &value) { prefix = value; }
+void FileRenamer::setSuffix(const QString &value) { suffix = value; }
+void FileRenamer::setNumbering(bool value) { ascending = value; }
 
-void FileRenamer::setPrefix(const QString &prefix) {
-    this->prefix = prefix;
-}
-
-void FileRenamer::setSuffix(const QString &suffix) {
-    this->suffix = suffix;
-}
-
-void FileRenamer::setNumbering(bool ascending) {
-    this->ascending = ascending;
-}
-
-std::vector<QString> FileRenamer::getFilesInFolder() {
+QVector<FileRenamer::Change> FileRenamer::plan(QString *error) const {
     QDir dir(folderPath);
-    QStringList fileList = dir.entryList(QDir::Files);
-    std::vector<QString> files(fileList.begin(), fileList.end());
-    return files;
+    if (!dir.exists() || !QFileInfo(folderPath).isWritable()) {
+        if (error) *error = QStringLiteral("پوشه در دسترس یا قابل نوشتن نیست.");
+        return {};
+    }
+    QStringList names = dir.entryList(QDir::Files | QDir::NoSymLinks, QDir::Name);
+    if (!ascending) std::reverse(names.begin(), names.end());
+    if (names.isEmpty()) {
+        if (error) *error = QStringLiteral("فایلی برای تغییر نام پیدا نشد.");
+        return {};
+    }
+    QVector<Change> changes;
+    QSet<QString> targets, sources;
+    for (const auto &name : names) sources.insert(name.toCaseFolded());
+    for (int i = 0; i < names.size(); ++i) {
+        const QString name = names.at(i);
+        const QString extension = QFileInfo(name).suffix();
+        const QString stem = extension.isEmpty() ? name : name.left(name.size() - extension.size() - 1);
+        const QString target = prefix + stem + suffix + QString::number(i + 1) +
+            (extension.isEmpty() ? QString() : QStringLiteral(".") + extension);
+        const QString key = target.toCaseFolded();
+        if (target.isEmpty() || target == "." || target == ".." ||
+            target.contains('/') || target.contains('\\') || target.contains(':') ||
+            target.contains('*') || target.contains('?') || target.contains('"') ||
+            target.contains('<') || target.contains('>') || target.contains('|') ||
+            target.endsWith(' ') || target.endsWith('.') ||
+            targets.contains(key) || (dir.exists(target) && !sources.contains(key))) {
+            if (error) *error = QStringLiteral("نام مقصد نامعتبر یا تکراری است: %1").arg(target);
+            return {};
+        }
+        targets.insert(key);
+        changes.append({name, target, QString()});
+    }
+    return changes;
 }
 
-std::vector<QString> FileRenamer::previewChanges() {
-    std::vector<QString> files = getFilesInFolder();
-    if (!ascending) {
-        std::reverse(files.begin(), files.end());
-    }
-
-    std::vector<QString> preview;
-    int counter = 1;
-    for (const QString &file : files) {
-        QString newName = prefix + file + suffix + QString::number(counter++);
-        preview.push_back(newName);
-    }
-
-    return preview;
+QStringList FileRenamer::previewChanges(QString *error) const {
+    QStringList lines;
+    for (const auto &change : plan(error))
+        lines << change.original + QStringLiteral("  →  ") + change.target;
+    return lines;
 }
 
-void FileRenamer::applyChanges() {
-    std::vector<QString> files = getFilesInFolder();
-    if (!ascending) {
-        std::reverse(files.begin(), files.end());
+bool FileRenamer::applyChanges(QString *error) const {
+    auto changes = plan(error);
+    if (changes.isEmpty()) return false;
+    QDir dir(folderPath);
+    int staged = 0, completed = 0;
+    for (auto &change : changes) {
+        do {
+            change.temporary = QStringLiteral(".namegenie-%1.tmp").arg(QUuid::createUuid().toString(QUuid::WithoutBraces));
+        } while (dir.exists(change.temporary));
+        if (!QFile::rename(dir.filePath(change.original), dir.filePath(change.temporary))) goto rollback;
+        ++staged;
     }
-
-    int counter = 1;
-    for (const QString &file : files) {
-        QString oldPath = folderPath + "/" + file;
-        QString newPath = folderPath + "/" + prefix + file + suffix + QString::number(counter++);
-        QFile::rename(oldPath, newPath);
+    for (auto &change : changes) {
+        if (!QFile::rename(dir.filePath(change.temporary), dir.filePath(change.target))) goto rollback;
+        ++completed;
     }
+    return true;
+rollback:
+    bool restored = true;
+    for (int i = completed - 1; i >= 0; --i)
+        restored = QFile::rename(dir.filePath(changes[i].target), dir.filePath(changes[i].temporary)) && restored;
+    for (int i = staged - 1; i >= 0; --i)
+        restored = QFile::rename(dir.filePath(changes[i].temporary), dir.filePath(changes[i].original)) && restored;
+    if (error) *error = restored ? QStringLiteral("تغییر نام ناموفق بود و فایل‌ها بازگردانده شدند.")
+                           : QStringLiteral("بازگردانی کامل نشد؛ فایل‌های پوشه را بررسی کنید.");
+    return false;
 }
