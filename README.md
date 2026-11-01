@@ -19,11 +19,11 @@
 
 ### ⚠️ احتیاط
 
-با زدن دکمهٔ شروع، برنامه پس از نمایش پیش‌نمایش بلافاصله تغییر نام را اجرا می‌کند؛ مرحلهٔ تأیید جداگانه ندارد. ابتدا روی نسخه‌ای پشتیبان از فایل‌ها آزمایش کنید. نتیجهٔ عملیات `QFile::rename` نیز در کد بررسی نمی‌شود.
+دکمهٔ پیش‌نمایش جداست و پیش از اجرا تأیید گرفته می‌شود. مقصدهای نامعتبر یا تکراری پیش از تغییر بررسی می‌شوند و در صورت خطای میانی، برنامه برای بازگردانی نام‌های اولیه تلاش می‌کند. برای دادهٔ مهم همچنان از فایل‌ها نسخهٔ پشتیبان بگیرید.
 
 ### 💡 تجربهٔ کار
 
-وقتی مجموعه‌ای از فایل‌ها باید با یک الگوی نام‌گذاری مرتب شوند، ابتدا پوشه را انتخاب کنید، پیشوند یا پسوند را بنویسید و ترتیب پردازش را تعیین کنید. برنامه برای هر فایل یک نام پیشنهادی با شمارهٔ متوالی می‌سازد. در پیاده‌سازی فعلی شماره بعد از نام اصلی و پسوندِ واردشده می‌آید؛ بنابراین پیش از استفاده روی عکس‌ها یا اسناد اصلی، نتیجه را روی کپی بررسی کنید.
+وقتی مجموعه‌ای از فایل‌ها باید با یک الگوی نام‌گذاری مرتب شوند، ابتدا پوشه را انتخاب کنید، پیشوند یا پسوند را بنویسید و ترتیب پردازش را تعیین کنید. برنامه برای هر فایل یک نام پیشنهادی با شمارهٔ متوالی می‌سازد. شماره پیش از پسوند فایل قرار می‌گیرد تا نوع فایل حفظ شود. پیش‌نمایش نام قدیم و جدید را کنار هم نشان می‌دهد.
 
 ### 🧩 اجزای اصلی
 
@@ -34,7 +34,7 @@
 | `src/main.cpp` | اتصال دکمه‌ها به عملیات |
 | `src/FileRenamer.cpp` | ساخت نام‌های پیشنهادی و تغییر نام فایل‌ها |
 
-> 🔎 پیش‌نمایش در همین نسخه با اجرای عملیات همراه است؛ آن را مرحلهٔ تأیید مستقل فرض نکنید.
+> 🔎 در صورت تغییر فایل‌ها یا تنظیمات پس از پیش‌نمایش، برنامه اجرای نسخهٔ قدیمی را متوقف می‌کند.
 
 ### 👤 پدیدآورنده و حقوق نشر
 
@@ -61,11 +61,11 @@ Install Qt, a compatible C++ compiler, and `qmake`. Open `NameGenie.pro` in Qt C
 
 ### ⚠️ Caution
 
-The Start button applies changes immediately after filling the preview list; there is no separate confirmation step. Try it on copies of files first. The code does not check the return value of `QFile::rename`.
+Preview and Apply are separate, and Apply requests confirmation. Invalid or duplicate destinations are checked in advance; on a mid-operation failure, the app attempts to restore original names. Keep a backup of important files.
 
 ### 💡 Workflow
 
-Choose a folder, enter an optional prefix or suffix, and select the processing order. NameGenie builds a numbered candidate name for each file. The current implementation appends the number after the original file name and the entered suffix; inspect its output on copied files before using it on originals.
+Choose a folder, enter an optional prefix or suffix, and select the processing order. NameGenie builds a numbered candidate name for each file. The sequence number is inserted before the file extension, preserving the file type. Preview shows old and new names side by side.
 
 ### 🧩 Repository map
 
@@ -76,7 +76,7 @@ Choose a folder, enter an optional prefix or suffix, and select the processing o
 | `src/main.cpp` | Button wiring |
 | `src/FileRenamer.cpp` | Candidate names and file renaming |
 
-> 🔎 Preview and application happen on the same button press in this version.
+> 🔎 Changes to files or options after preview invalidate the previous preview.
 
 ### 👤 Author and copyright
 
